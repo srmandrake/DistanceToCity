@@ -13,6 +13,7 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -32,6 +33,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,8 +64,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
     private DatabaseController mDatabaseController;
     private LocationManager mLocationManager;
     private Location mDeviceLocation;
-    private QueriedCity queriedCity;
-    private FragmentMap fragmentMap;
+    private QueriedCity mQueriedCity;
+    private FragmentMap mFragmentMap;
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,8 +111,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
-    }
 
+        mProgressDialog = new ProgressDialog( this );
+        mProgressDialog.setMessage( getString( R.string.waiting_for_location_message ) );
+        mProgressDialog.show();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -152,6 +159,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
 
         //save this location in preferences
         this.setLocationInSharedPreferences(location);
+
+        mProgressDialog.dismiss();
     }
 
     @Override
@@ -191,15 +200,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
     @Override
     public QueriedCity getQueriedCity() {
 
-        return queriedCity;
-    }
-
-    public void setMapLocation(){
-
-        if( fragmentMap != null ){
-
-            fragmentMap.setMapLocation( queriedCity );
-        }
+        return mQueriedCity;
     }
 
     private boolean isConnected() {
@@ -334,11 +335,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
                 JSONObject queriedCityLocation = info.getJSONObject( "response" ).getJSONObject("geocode")
                         .getJSONObject("feature").getJSONObject("geometry").getJSONObject( "center" );
 
-                queriedCity = new QueriedCity( query, queriedCityLocation.getDouble( "lat" ), queriedCityLocation.getDouble( "lng" ) );
+                mQueriedCity = new QueriedCity( query, queriedCityLocation.getDouble( "lat" ), queriedCityLocation.getDouble( "lng" ) );
 
-                if( isConnected() ) {
+                if( mFragmentMap != null ){
 
-                    setMapLocation();
+                    mFragmentMap.setLocationInMap( mQueriedCity, venuesList );
                 }
 
                 response = true;
@@ -381,8 +382,12 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
             }
 
             //return FragmentMain.newInstance(position + 1);
-            fragmentMap = new FragmentMap();
-            return fragmentMap;
+            if( mFragmentMap == null ){
+
+                mFragmentMap = new FragmentMap();
+            }
+
+            return mFragmentMap;
         }
 
         @Override

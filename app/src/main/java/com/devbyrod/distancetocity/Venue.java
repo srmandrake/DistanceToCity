@@ -2,10 +2,13 @@ package com.devbyrod.distancetocity;
 
 import android.location.Location;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.clustering.ClusterItem;
+
 /**
  * Created by Rodrigo on 10/31/2014.
  */
-public class Venue {
+public class Venue implements ClusterItem {
 
     private Location location;
     private String name;
@@ -39,5 +42,10 @@ public class Venue {
 
     public double getDistance() {
         return distance;
+    }
+
+    @Override
+    public LatLng getPosition() {
+        return new LatLng( location.getLatitude(), location.getLongitude() );
     }
 }

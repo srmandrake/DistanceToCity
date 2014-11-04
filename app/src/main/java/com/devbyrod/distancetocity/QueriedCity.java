@@ -6,13 +6,13 @@ package com.devbyrod.distancetocity;
 public class QueriedCity {
 
     public String city;
-    public double lat;
-    public double lon;
+    public double lat = 0;
+    public double lon = 0;
 
-    QueriedCity( String city, double lat, double lon ){
+    public QueriedCity( String city, double lat, double lon ){
 
-        city = city;
-        lat = lat;
-        lon = lon;
+        this.city = city;
+        this.lat = lat;
+        this.lon = lon;
     }
 }
