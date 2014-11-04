@@ -18,6 +18,8 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -36,11 +38,11 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-
 public class MainActivity extends Activity implements ActionBar.TabListener,
                                                         LocationListener,
                                                         FragmentMain.OnFragmentInteractionListener,
-                                                        FragmentDisplayInfo.OnFragmentInteractionListener{
+                                                        FragmentDisplayInfo.OnFragmentInteractionListener,
+                                                        FragmentMap.OnFragmentInteractionListener{
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -59,6 +61,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
     private DatabaseController mDatabaseController;
     private LocationManager mLocationManager;
     private Location mDeviceLocation;
+    private QueriedCity queriedCity;
+    private FragmentMap fragmentMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,7 +151,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
         this.mDeviceLocation = new Location( location );
 
         //save this location in preferences
-        this.setLocationInSharedPreferences( location );
+        this.setLocationInSharedPreferences(location);
     }
 
     @Override
@@ -182,6 +186,28 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public QueriedCity getQueriedCity() {
+
+        return queriedCity;
+    }
+
+    public void setMapLocation(){
+
+        if( fragmentMap != null ){
+
+            fragmentMap.setMapLocation( queriedCity );
+        }
+    }
+
+    private boolean isConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     private Location getLocationFromSharedPreferences(){
@@ -231,7 +257,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
         }
         catch ( Exception e ){
 
-            Toast.makeText( this, "Getting Information from Local DataBase", Toast.LENGTH_LONG ).show();
+            //Toast.makeText( this, "Getting Information from Local DataBase", Toast.LENGTH_LONG ).show();
+
+            MessageBox.display( this, "Getting Information from Local DataBase" );
 
             data = this.mDatabaseController.getSavedQueryResult( s );
             response = this.processFourSquareResponseInternal( s, data );
@@ -302,13 +330,25 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
 
                 listView.setAdapter( listAdapter );
 
+                //get queried city info
+                JSONObject queriedCityLocation = info.getJSONObject( "response" ).getJSONObject("geocode")
+                        .getJSONObject("feature").getJSONObject("geometry").getJSONObject( "center" );
+
+                queriedCity = new QueriedCity( query, queriedCityLocation.getDouble( "lat" ), queriedCityLocation.getDouble( "lng" ) );
+
+                if( isConnected() ) {
+
+                    setMapLocation();
+                }
+
                 response = true;
             }
 
             //The result was processed correctly, so insert it in the Database
             if( !this.mDatabaseController.insertQueryResult( query, data ) ){
 
-                Toast.makeText( this, "Unable to insert record in Database", Toast.LENGTH_LONG ).show();
+                //Toast.makeText( this, "Unable to insert record in Database", Toast.LENGTH_LONG ).show();
+                MessageBox.display( this, "Unable to insert record in Database" );
             }
         }
         catch ( Exception e ){
@@ -340,7 +380,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
                 return new FragmentDisplayInfo();
             }
 
-            return FragmentMain.newInstance(position + 1);
+            //return FragmentMain.newInstance(position + 1);
+            fragmentMap = new FragmentMap();
+            return fragmentMap;
         }
 
         @Override
