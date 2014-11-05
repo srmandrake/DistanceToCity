@@ -67,6 +67,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
     private QueriedCity mQueriedCity;
     private FragmentMap mFragmentMap;
     private ProgressDialog mProgressDialog;
+    private ListView mListView;
+    private ListAdapter mListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -280,6 +282,29 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
 
         boolean response = false;
 
+        //get the ListView
+        if( mListView == null ){
+
+            mListView = (ListView) findViewById(R.id.list_venues);
+        }
+
+        //set the List Adapter
+        if( mListAdapter == null ){
+
+            mListAdapter = new ListAdapter( new ArrayList<Venue>(), this );
+
+            mListView.setAdapter( mListAdapter );
+        }
+
+        mListAdapter.clear();
+
+        //if no data received
+        if( data == null || "".equals(data) ){
+
+            MessageBox.display(this, "No results found" );
+            return response;
+        }
+
         try {
 
             JSONObject info = new JSONObject( data );
@@ -325,11 +350,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
                     venuesList.add( new Venue( venue.getString("name"), venueCategory, venueAddress, lat, lon, this.mDeviceLocation ) );
                 }
 
-                ListView listView = (ListView) findViewById(R.id.list_venues);
-
-                ListAdapter listAdapter = new ListAdapter( venuesList, getApplicationContext() );
-
-                listView.setAdapter( listAdapter );
+                mListAdapter.addAll( venuesList );
 
                 //get queried city info
                 JSONObject queriedCityLocation = info.getJSONObject( "response" ).getJSONObject("geocode")
@@ -342,14 +363,19 @@ public class MainActivity extends Activity implements ActionBar.TabListener,
                     mFragmentMap.setLocationInMap( mQueriedCity, venuesList );
                 }
 
+                //The result was processed correctly, so insert it in the Database
+                if( !this.mDatabaseController.insertQueryResult( query, data ) ){
+
+                    //Toast.makeText( this, "Unable to insert record in Database", Toast.LENGTH_LONG ).show();
+                    MessageBox.display( this, "Unable to insert record in Database" );
+                }
+
                 response = true;
             }
+            else{
 
-            //The result was processed correctly, so insert it in the Database
-            if( !this.mDatabaseController.insertQueryResult( query, data ) ){
 
-                //Toast.makeText( this, "Unable to insert record in Database", Toast.LENGTH_LONG ).show();
-                MessageBox.display( this, "Unable to insert record in Database" );
+                MessageBox.display(this, "Unable to fetch information.\nCode: " + code + "\n" + meta.getString("errorDetail"));
             }
         }
         catch ( Exception e ){
