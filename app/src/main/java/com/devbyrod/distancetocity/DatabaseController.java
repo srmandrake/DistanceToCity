@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.widget.Toast;
 
 import java.sql.SQLException;
 
@@ -94,7 +93,6 @@ public class DatabaseController{
                     Constants.DB_TABLE_RESULTS_COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     Constants.DB_TABLE_RESULTS_COL_CITY + " TEXT, " +
                     Constants.DB_TABLE_RESULTS_COL_RESULT + " TEXT);");
-            Toast.makeText( mContext, "Database onCreate()", Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -102,7 +100,6 @@ public class DatabaseController{
 
             db.execSQL( "DROP TABLE IF EXISTS " + Constants.DB_TABLE_RESULTS + ";" );
             this.onCreate( db );
-            Toast.makeText( mContext, "Database onUpdate()", Toast.LENGTH_LONG).show();
         }
     }
 }
