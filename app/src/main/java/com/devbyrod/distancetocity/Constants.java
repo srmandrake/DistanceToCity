@@ -8,9 +8,9 @@ public class Constants {
     public final static String  TAG                          = "DISTANCE TO CITY";
 
     public final static String  FOURSQUARE_API_URL           = "https://api.foursquare.com/v2/venues/search?";
-    public final static String  FOURSQUARE_API_CLIENT_ID     = "QML4GXW4KAISGFWLVMYDOV5SPE5A4M4A10Y34PCMGUHDI45B";
-    public final static String  FOURSQUARE_API_CLIENT_SECRET = "FXFOHD2W5K4YJVG4H43QHYCIVIZXNJEFP4AIB4C4BWF31TYL";
-    public final static String  FOURSQUARE_API_VERSION       = "20131031";
+    public final static String  FOURSQUARE_API_CLIENT_ID     = "<YOUR_CLIENT_ID>";
+    public final static String  FOURSQUARE_API_CLIENT_SECRET = "<YOUR_CLIENT_SECRET>";
+    public final static String  FOURSQUARE_API_VERSION       = "<YOUR_VERSION>";
 
     //Search Criteria to use
     public final static String  SEARCH_CRITERIA_NEAR         = "near";
